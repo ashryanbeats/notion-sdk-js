@@ -1,7 +1,7 @@
 {
   "name": "database-update-send-email",
   "version": "1.0.0",
-  "description": "Send an email with SendGrid when an update is made in Notion.",
+  "description": "Send an email with Nylas when an update is made in Notion.",
   "main": "index.js",
   "engines": {
     "node": "12.x"
@@ -12,9 +12,14 @@
   },
   "dependencies": {
     "@notionhq/client": "^2.1.1",
-    "@sendgrid/mail": "^7.7.0",
-    "dotenv": "^16.0.1"
+    "dotenv": "^16.0.1",
+    "nylas": "^6.5.1"
   },
   "author": "Aman Gupta",
+  "contributors": [
+    {
+      "name": "Ash Ryan Arnwine"
+    }
+  ],
   "license": "MIT"
 }

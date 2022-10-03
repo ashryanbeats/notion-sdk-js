@@ -9,11 +9,16 @@
 
 const { Client } = require("@notionhq/client")
 const dotenv = require("dotenv")
-const sendgridMail = require("@sendgrid/mail")
+const Nylas = require("nylas");
+const Draft = require("nylas/lib/models/draft.js")
 
 dotenv.config()
-sendgridMail.setApiKey(process.env.SENDGRID_KEY)
 const notion = new Client({ auth: process.env.NOTION_KEY })
+Nylas.config({
+  clientId: process.env.NYLAS_CLIENT_ID,
+  clientSecret: process.env.NYLAS_CLIENT_SECRET,
+})
+const nylas = Nylas.with(process.env.NYLAS_ACCESS_TOKEN)
 
 const databaseId = process.env.NOTION_DATABASE_ID
 
@@ -53,7 +58,7 @@ async function findAndSendEmailsForUpdatedTasks() {
   // For each updated task, update taskPageIdToStatusMap and send an email notification.
   for (const task of updatedTasks) {
     taskPageIdToStatusMap[task.pageId] = task.status
-    await sendUpdateEmailWithSendgrid(task)
+    await sendUpdateEmailWithNylas(task)
   }
 }
 
@@ -122,25 +127,27 @@ function findUpdatedTasks(currentTasks) {
 }
 
 /**
- * Sends task update notification using Sendgrid.
+ * Sends task update notification using Nylas.
  *
  * @param {{ status: string, title: string }} task
  */
-async function sendUpdateEmailWithSendgrid({ title, status }) {
-  const message = `Status of Notion task ("${title}") has been updated to "${status}".`
-  console.log(message)
+async function sendUpdateEmailWithNylas({ title, status }) {
+  const body = `Status of Notion task ("${title}") has been updated to "${status}".`
+  console.log(body);
 
+  // Create a draft email
+  const draft = new Draft.default(nylas, {
+    subject: "Notion Task Status Updated",
+    body,
+    to: [{ name: "Recipient name", email: process.env.RECIPIENT_ADDRESS }],
+  })
+
+  // Send the email
   try {
-    // Send an email about this change.
-    await sendgridMail.send({
-      to: process.env.EMAIL_TO_FIELD,
-      from: process.env.EMAIL_FROM_FIELD,
-      subject: "Notion Task Status Updated",
-      text: message,
-    })
-    console.log("Email Sent")
-  } catch (error) {
-    console.error(error)
+    const message = await draft.send()
+    console.log(`Message "${message.subject}" was sent with ID ${message.id}`)
+  } catch (err) {
+    console.error("Error:\n", err)
   }
 }
 
