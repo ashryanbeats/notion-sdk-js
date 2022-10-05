@@ -2,7 +2,6 @@
 
 	database-update-send-email.
   
-  Glitch example: https://glitch.com/edit/#!/notion-database-email-update
   Find the official Notion API client @ https://github.com/makenotion/notion-sdk-js/
 
 ================================================================================ */
